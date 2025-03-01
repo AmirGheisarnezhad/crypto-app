@@ -1,0 +1,32 @@
+/* ریست کردن تمام استایل‌های پیش‌فرض مرورگر */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* تنظیم پیش‌فرض برای فونت و اندازه‌ی متن */
+body {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    background-color: #f5f5f5;
+}
+
+/* لینک‌ها بدون استایل پیش‌فرض */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* حذف استایل پیش‌فرض لیست‌ها */
+ul, ol {
+    list-style: none;
+}
+
+/* دکمه‌ها بدون استایل مرورگر */
+button {
+    border: none;
+    background: none;
+    cursor: pointer;
+}

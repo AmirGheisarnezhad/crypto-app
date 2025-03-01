@@ -1,0 +1,80 @@
+/* تنظیم کلی برای چسباندن فوتر به انتهای صفحه */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #1a1a2e, #16213e);
+    color: #ffffff;
+}
+
+/* اطمینان از اینکه محتوای صفحه کل ارتفاع رو بگیره */
+#root {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* فوتر مدرن با افکت شیشه‌ای */
+.footer {
+    width: 100%;
+    background: rgba(30, 40, 50, 0.8); /* ✅ پس‌زمینه شفاف برای افکت شیشه‌ای */
+    backdrop-filter: blur(10px);
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: auto;
+    box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* کانتینر داخلی فوتر */
+.footer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* لینک‌های داخل فوتر */
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+/* استایل لینک‌ها */
+.footer-link {
+    color: #00bcd4;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.footer-link:hover {
+    color: #9b5de5;
+    text-decoration: underline;
+}
+
+/* متن فوتر */
+.footer-text {
+    font-size: 14px;
+    color: #e0e0e0;
+}
+
+.footer-author {
+    font-size: 14px;
+    color: #ffffff;
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+.footer-name {
+    color: #00bcd4;
+    font-weight: bold;
+    text-transform: uppercase;
+}

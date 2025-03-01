@@ -1,0 +1,8 @@
+.layout-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+    min-height: calc(100vh - 120px); /* برای پر کردن صفحه و جلوگیری از کوچک شدن */
+    display: flex;
+    flex-direction: column;
+  }

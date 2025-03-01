@@ -1,0 +1,97 @@
+/* 📌 تنظیم کانتینر لیست کوین‌ها */
+.coins-list-container {
+    text-align: center;
+    padding: 60px 20px;
+    max-width: 90%;
+    margin: 100px auto;
+}
+
+/* 📌 عنوان جدول */
+.table-title {
+    font-size: 26px;
+    font-weight: bold;
+    color: #00bcd4;
+    margin-bottom: 20px;
+}
+
+/* 📌 استایل کلی جدول */
+.table-wrapper {
+    margin-top: 10px;
+    padding: 20px;
+    background: rgba(30, 40, 50, 0.85);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.coins-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* ✅ جلوگیری از به‌هم‌ریختگی ستون‌ها */
+}
+
+.coins-table th, .coins-table td {
+    padding: 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: left;
+    white-space: nowrap; /* ✅ جلوگیری از رفتن محتوای ستون‌ها به چند خط */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.coins-table th {
+    background: rgba(0, 188, 212, 0.3);
+    font-weight: bold;
+}
+
+.coins-table tbody tr:hover {
+    background: rgba(0, 188, 212, 0.35);
+    transition: background 0.3s ease-in-out;
+}
+
+/* 📌 لینک‌های کوین */
+.coin-link {
+    text-decoration: none;
+    color: #00bcd4;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.coin-link:hover {
+    color: #9b5de5;
+}
+
+/* 📌 تنظیم کلیک‌پذیری سطرها */
+.clickable-row {
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.clickable-row:hover {
+    background: rgba(0, 188, 212, 0.4);
+}
+
+/* 📌 تغییر رنگ درصد تغییر قیمت */
+.positive {
+    color: #00ff99;
+    font-weight: bold;
+}
+
+.negative {
+    color: #ff4d4f;
+    font-weight: bold;
+}
+
+/* 📌 پیام در صورت نبود دیتا */
+.no-data {
+    color: red;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* 📌 استایل صفحه‌بندی */
+.pagination {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+}

@@ -1,0 +1,84 @@
+/* مدرن‌سازی هدر */
+.header {
+  background: rgba(30, 40, 50, 0.8); /* ✅ پس‌زمینه شفاف برای افکت شیشه‌ای */
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 15px 0;
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-around;
+  width: 60%;
+  align-items: center;
+}
+
+.nav-link {
+  color: #00bcd4; /* ✅ رنگ آبی نئونی برای لینک‌ها */
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 18px;
+  transition: color 0.3s ease-in-out;
+}
+
+.nav-link:hover {
+  color: #9b5de5; /* ✅ تغییر رنگ هنگام هاور */
+}
+
+/* جعبه جستجو */
+.currency-dropdown {
+  position: relative;
+}
+
+.currency-search {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transition: background 0.3s;
+}
+
+.currency-search::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.currency-search:focus {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* لیست انتخاب ارز */
+.currency-list {
+  position: absolute;
+  background: rgba(30, 40, 50, 0.9);
+  color: white;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.currency-item {
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.currency-item:hover {
+  background: #00bcd4;
+  color: #ffffff;
+}
