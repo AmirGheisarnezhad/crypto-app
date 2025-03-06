@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import Header from "../Header/Header";
+import Header from "../Header/Header"; // ✅ اصلاح ایمپورت Header.jsx
 import Footer from "../Footer/Footer";
 import "../../Styles/MainLayout.css"; // استایل جداگانه برای layout
 
@@ -21,7 +21,7 @@ export default function MainLayout() {
     <Fragment>
       <Header selectedCurrency={selectedCurrency} setSelectedCurrency={setSelectedCurrency} />
       <div className="content">
-      <Outlet context={{ selectedCurrency }} key={selectedCurrency}  /> {/* ✅ پاس دادن `selectedCurrency` به صفحات داخلی */}
+        <Outlet context={{ selectedCurrency }} key={selectedCurrency} /> {/* ✅ پاس دادن `selectedCurrency` به صفحات داخلی */}
       </div>
       <Footer />
     </Fragment>

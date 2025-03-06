@@ -50,6 +50,12 @@ export default function CoinsPage() {
     return (parseFloat(price) / (exchangeRates[selectedCurrency] || 1)).toFixed(2);
   };
 
+
+  const handleCoinClick = (coinId) => {
+    navigate(`/coin/${coinId}`);
+  };
+  
+
   return (
     <div className="container">
       {/* 📌 اطلاعات کوین با ساختار جدید */}
@@ -108,7 +114,8 @@ export default function CoinsPage() {
           </thead>
           <tbody>
             {allCoins.slice(0, visibleCount).map(({ id, rank, symbol, name, priceUsd, supply, marketCapUsd, vwap24Hr, volumeUsd24Hr, changePercent24Hr }) => (
-              <tr key={id}>
+              <tr key={id} onClick={() => handleCoinClick(id)}>
+
                 <td>{rank ?? "N/A"}</td>
                 <td>{symbol}</td>
                 <td>{name}</td>

@@ -1,4 +1,6 @@
 import axios from "axios";
+import { AuthContext } from "../context/AuthContext"; // 🔹 اضافه شد
+import { useContext } from "react";
 
 export const API_URL = "http://localhost:5000/proxy/";
 
@@ -149,54 +151,65 @@ export const getRates = async () => {
   return await fetchExchangeRates();
 };
 
-// ---------------------------------------------------------
-// /assets/{id}/history?interval={interval}
-
-// مقدار interval تعیین می‌کند که داده‌ها به‌صورت روزانه (d1)، ساعتی (h1) یا دقیقه‌ای (m1) دریافت شوند.
-// این تابع مستقیماً در CoinChart.jsx استفاده می‌شود.
-
-// ✅ دریافت تاریخچه‌ی قیمت یک کوین
+// =========================================================
+// ✅ دریافت تاریخچه‌ی قیمت یک کوین برای چارت
 export const getCoinHistory = async (coinId, interval = "d1") => {
-  try {
-    const response = await apiList.get(
-      `assets/${coinId}/history?interval=${interval}`
-    );
+  let apiInterval = "d1"; // مقدار پیش‌فرض
 
-    console.log(`🟢 API Response for ${coinId}:`, response.data);
+  if (interval === "1D") apiInterval = "m1"; 
+  else if (["1W", "1M", "3M", "6M", "1Y", "All"].includes(interval)) apiInterval = "d1";
+
+  try {
+    const response = await apiList.get(`assets/${coinId}/history?interval=${apiInterval}`);
 
     if (!response.data?.data || response.data.data.length === 0) {
-      console.warn(`⚠️ No history data for ${coinId} - ${interval}`);
+      console.warn(`⚠️ No history data for ${coinId} - ${apiInterval}`);
       return [];
     }
 
     return response.data.data;
   } catch (error) {
-    console.error(
-      `❌ ERROR FETCHING HISTORY FOR ${coinId}:`,
-      error.response?.data || error.message
-    );
+    console.error(`❌ ERROR FETCHING HISTORY FOR ${coinId}:`, error.response?.data || error.message);
     return [];
   }
 };
+
 // ---------------------------------------------------------------------------------------
 
-// ✅ دریافت داده‌های کندل استیک (Candlestick) برای یک کوین خاص
-export const getCandlestickData = async (exchangeId, baseId, quoteId, interval = "d1") => {
-  try {
-    console.log(`🟡 Calling Candlestick API: exchange=${exchangeId}, baseId=${baseId}, quoteId=${quoteId}, interval=${interval}`);
+// ✅ اضافه کردن `Interceptor` برای بررسی خطای 401 (توکن منقضی شده)
+export function setupAxiosInterceptors(logout) {
+  apiList.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        console.warn("⛔ توکن منقضی شده، کاربر به صفحه لاگین هدایت می‌شود.");
+        logout(); // خروج خودکار کاربر
+        window.location.href = "/login"; // هدایت به صفحه لاگین
+      }
+      return Promise.reject(error);
+    }
+  );
+}
 
-    const response = await apiList.get(
-      `candles?exchange=${exchangeId}&interval=${interval}&baseId=${baseId}&quoteId=${quoteId}`
+// ---------------------------------------------------------------------
+
+export const refreshToken = async (oldRefreshToken) => {
+  try {
+    const formData = new URLSearchParams();
+    formData.append("grant_type", "refresh_token");
+    formData.append("refresh_token", oldRefreshToken);
+
+    const response = await apiList.post(
+      "oauth/token",
+      formData,
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    if (!response.data?.data || response.data.data.length === 0) {
-      console.warn(`⚠️ No candle data for ${interval}, using getCoinHistory.`);
-      return await getCoinHistory(baseId, interval);
-    }
-
-    return response.data.data;
+    return response.data;
   } catch (error) {
-    console.error(`❌ ERROR FETCHING CANDLE DATA (${baseId}/${quoteId} - ${interval}):`, error.response?.data || error.message);
-    return await getCoinHistory(baseId, interval);
+    console.error("❌ ERROR Refreshing Token:", error);
+    return null;
   }
 };
+
+// ------------------------------------------------------

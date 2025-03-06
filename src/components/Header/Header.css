@@ -82,3 +82,159 @@
   background: #00bcd4;
   color: #ffffff;
 }
+
+/* ✅ استایل جدید برای مودال کوچک */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+.modal-container {
+  position: fixed;
+  top: 50vh; /* ✅ تنظیم دقیق وسط صفحه */
+  left: 50%;
+  transform: translate(-50%, -50%); /* ✅ دقیقاً وسط صفحه */
+  background: #9ba3ab;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+  width: 350px;
+  text-align: center;
+  max-height: 90vh; /* ✅ برای جلوگیری از خروج از صفحه */
+  overflow-y: auto; /* ✅ اگر فضا کم بود، اسکرول فعال بشه */
+}
+
+.modal-container h2 {
+  color: white;
+  margin-bottom: 15px;
+}
+
+.modal-container input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  outline: none;
+}
+
+.modal-container button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #00bcd4;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.modal-container button:hover {
+  background: #0097a7;
+}
+
+.switch-form {
+  color: #9b5de5;
+  cursor: pointer;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.switch-form:hover {
+  text-decoration: underline;
+}
+
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+}
+/* ✅ تغییر رنگ دکمه Login/Register برای خوانایی بهتر */
+.login-button {
+  background: #f1f4f4;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-button:hover {
+  background: #c5c7c8;
+}
+/* -------------------------------------------------------- */
+/* ✅ لیست نتایج جستجو در هدر */
+.search-container {
+  position: relative;
+  width: 250px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  transition: background 0.3s;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.search-input:focus {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ✅ بهینه‌سازی لیست نتایج جستجو */
+.search-dropdown {
+  position: absolute;
+  background: rgba(30, 40, 50, 0.9);
+  color: white;
+  width: 100%;
+  max-height: 250px; /* 🚀 محدود کردن ارتفاع لیست */
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* ✅ استایل آیتم‌های لیست */
+.search-item {
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ✅ افکت هاور برای انتخاب بهتر */
+.search-item:hover {
+  background: #00bcd4;
+  color: #ffffff;
+  font-weight: bold;
+}
+

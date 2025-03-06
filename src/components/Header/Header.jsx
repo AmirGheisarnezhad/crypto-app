@@ -1,18 +1,29 @@
-import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { apiList } from "../../Utils/CryptoService"; // Import API service
 import "../Header/Header.css";
 
 export default function Header({ selectedCurrency, setSelectedCurrency }) {
+  const { isAuthenticated, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  
+
   const [currencies, setCurrencies] = useState([]);
   const [search, setSearch] = useState("");
   const [filteredCurrencies, setFilteredCurrencies] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // مقدار اولیه را از localStorage بگیریم
-  // const [selectedCurrency, setSelectedCurrency] = useState(() => {
-  //   return localStorage.getItem("selectedCurrency") || "USD"; 
-  // });
+  const [searchAsset, setSearchAsset] = useState(""); // Input value for searching assets & exchanges
+  const [assets, setAssets] = useState([]); // Stores assets (cryptos)
+  const [exchanges, setExchanges] = useState([]); // Stores exchanges
+  const [filteredResults, setFilteredResults] = useState([]); // Filtered results for dropdown
 
+  const handleLogin = () => {
+    window.location.href = "/login";
+  };
+
+  // ✅ Fetch currency rates (Existing functionality)
   useEffect(() => {
     async function fetchCurrencies() {
       try {
@@ -26,13 +37,6 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
     fetchCurrencies();
   }, []);
 
-  // ذخیره‌ی انتخاب کاربر در localStorage
-  useEffect(() => {
-    console.log("Header: Selected currency changed to", selectedCurrency);
-    // localStorage.setItem("selectedCurrency", selectedCurrency);
-  }, [selectedCurrency]);
-
-  // فیلتر کردن ارزها بر اساس ورودی جستجو
   useEffect(() => {
     if (search.trim() === "") {
       setFilteredCurrencies([]);
@@ -41,20 +45,74 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
       const filtered = currencies.filter(
         (currency) =>
           currency.id.toLowerCase().includes(search.toLowerCase()) ||
-          (currency.symbol &&
-            currency.symbol.toLowerCase().includes(search.toLowerCase()))
+          (currency.symbol && currency.symbol.toLowerCase().includes(search.toLowerCase()))
       );
       setFilteredCurrencies(filtered);
       setShowDropdown(filtered.length > 0);
     }
   }, [search, currencies]);
 
-  // انتخاب واحد پولی و ذخیره در localStorage
   const handleSelectCurrency = (currency) => {
-    console.log("User selected currency:", currency.symbol);
     setSelectedCurrency(currency.symbol);
     setSearch("");
     setShowDropdown(false);
+  };
+
+  // ✅ Fetch assets & exchanges for search input
+  useEffect(() => {
+    async function fetchData() {
+      
+      try {
+        const assetsResponse = await apiList.get("assets");
+        const exchangesResponse = await apiList.get("exchanges");
+        console.log("exchangesResponse: ", exchangesResponse)
+        setAssets(assetsResponse.data.data);
+        setExchanges(exchangesResponse.data.data);
+      } catch (error) {
+        console.error("Error fetching assets & exchanges:", error);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // ✅ Filter assets & exchanges based on search input
+  useEffect(() => {
+    if (!assets || !exchanges) return; // 🚀 جلوگیری از اجرای کد روی undefined
+    if (searchAsset.trim() === "") {
+      setFilteredResults([]);
+      return;
+    }
+  
+    const filteredAssets = assets.filter(
+      (item) =>
+        (item.id && item.id.toLowerCase().includes(searchAsset.toLowerCase())) ||
+        (item.symbol && item.symbol.toLowerCase().includes(searchAsset.toLowerCase())) ||
+        (item.name && item.name.toLowerCase().includes(searchAsset.toLowerCase()))
+    );
+  
+    const filteredExchanges = exchanges.filter(
+      (item) =>
+        (item.exchangeId && item.exchangeId.toLowerCase().includes(searchAsset.toLowerCase())) ||
+        (item.name && item.name.toLowerCase().includes(searchAsset.toLowerCase()))
+    );
+  
+    setFilteredResults([...filteredAssets, ...filteredExchanges]);
+  }, [searchAsset, assets, exchanges]);
+
+  // ✅ Handle selection & navigation
+  const handleSelectItem = (item) => {
+    const isExchange = exchanges.some((exchange) => exchange.id === item.id);
+  
+    console.log("🔎 Navigating to:", isExchange ? `/exchange/${item.id}` : `/coin/${item.id}`);
+  
+    if (isExchange) {
+      navigate(`/exchange/${item.id}`, { replace: true });
+    } else {
+      navigate(`/coin/${item.id}`, { replace: true });
+    }
+  
+    setSearchAsset("");  // پاک کردن مقدار جستجو
+    setFilteredResults([]); // بستن لیست جستجو
   };
 
   return (
@@ -63,6 +121,7 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
         <Link to="/" className="nav-link">Coins</Link>
         <Link to="/exchanges" className="nav-link">Exchanges</Link>
 
+        {/* ✅ Currency Selection (Existing) */}
         <div className="currency-dropdown">
           <input
             type="text"
@@ -73,9 +132,9 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
           />
           {showDropdown && (
             <ul className="currency-list">
-              {filteredCurrencies.map((currency,index) => (
+              {filteredCurrencies.map((currency, index) => (
                 <li
-                  key={index} // ✅ جلوگیری از کلید تکراری
+                  key={index}
                   className="currency-item"
                   onClick={() => handleSelectCurrency(currency)}
                 >
@@ -86,9 +145,40 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
           )}
         </div>
 
-        <span className="selected-currency">
-          Selected: {selectedCurrency}
-        </span>
+        {/* ✅ New Search Input for Assets & Exchanges */}
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Search Assets or Exchanges..."
+            value={searchAsset}
+            onChange={(e) => setSearchAsset(e.target.value)}
+            className="search-input"
+          />
+          {filteredResults.length > 0 && (
+           <ul className="search-dropdown">
+           {filteredResults.map((item, index) => (
+             <li key={index} className="search-item">
+               <Link 
+                 to={exchanges.some((exchange) => exchange.id === item.id) ? `/exchange/${item.id}` : `/coin/${item.id}`}
+                 onClick={() => {
+                   setSearchAsset("");  // پاک کردن مقدار جستجو
+                   setFilteredResults([]); // بستن لیست جستجو
+                 }}
+               >
+                 {item.name} ({item.symbol ?? item.id})
+               </Link>
+             </li>
+           ))}
+         </ul>
+          )}
+        </div>
+
+        {/* ✅ Login / Logout Button */}
+        {isAuthenticated ? (
+          <button className="logout-button" onClick={logout}>Logout</button>
+        ) : (
+          <button className="login-button" onClick={handleLogin}>Login / Register</button>
+        )}
       </nav>
     </header>
   );
