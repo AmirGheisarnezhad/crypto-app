@@ -12,44 +12,66 @@ export const apiList = axios.create({
 });
 
 // ✅ دریافت نرخ ارزها و ذخیره آن‌ها
-let exchangeRatesCache = null; // کش نرخ ارزها
+let exchangeRatesCache = null;  // کش برای ذخیره نرخ ارزها
+let lastFetchTime = 0;          // ذخیره آخرین زمان دریافت داده
 
 export const fetchExchangeRates = async () => {
-  if (exchangeRatesCache) {
-    console.log("✅ Using cached exchange rates");
-    return exchangeRatesCache;
+  const now = Date.now();
+
+  // بررسی کش در localStorage
+  const cachedRates = JSON.parse(localStorage.getItem("exchangeRates"));
+  const lastTime = localStorage.getItem("exchangeRatesTime");
+
+  if (cachedRates && lastTime && now - lastTime < 5 * 60 * 1000) {
+    console.log("✅ Using cached exchange rates:", cachedRates);
+    return cachedRates;
   }
 
   try {
-    const response = await apiList.get("rates"); // 🔹 `/` حذف شد
-    exchangeRatesCache = response.data.data.reduce(
-      (acc, rate) => {
-        acc[rate.symbol] = parseFloat(rate.rateUsd);
-        return acc;
-      },
-      { USD: 1 }
-    );
+    console.log("⚡ Fetching exchange rates from API...");
+    const response = await apiList.get("rates");
 
-    console.log("📊 Updated exchange rates:", exchangeRatesCache);
-    return exchangeRatesCache;
+    if (!response.data || !response.data.data) {
+      console.error("❌ ERROR: API returned no data!");
+      return null; // 🔹 مقدار `null` برمی‌گردانیم تا مقدار نادرست اعمال نشود
+    }
+
+    const rates = response.data.data.reduce((acc, rate) => {
+      acc[rate.symbol] = parseFloat(rate.rateUsd);
+      return acc;
+    }, {});
+
+    if (!rates["USD"]) {
+      console.error("❌ ERROR: API did not return USD exchange rate! Using fallback.");
+      rates["USD"] = 1;
+    }
+
+    localStorage.setItem("exchangeRates", JSON.stringify(rates));
+    localStorage.setItem("exchangeRatesTime", now);
+
+    console.log("✅ Successfully fetched exchange rates:", rates);
+    return rates;
   } catch (error) {
-    console.error(
-      "❌ ERROR FETCHING RATES:",
-      error.response?.data || error.message
-    );
-    return { USD: 1 };
+    console.error("❌ ERROR FETCHING RATES:", error.response?.data || error.message);
+    return null; // 🔹 مقدار `null` برمی‌گردانیم تا برنامه بتواند پیام مناسب نمایش دهد
   }
 };
 
 // ✅ دریافت لیست ارزهای دیجیتال و تبدیل قیمت‌ها بر اساس واحد پولی انتخابی
 export const getCryptoList = async (selectedCurrency = "USD") => {
+  console.log("🔥 getCryptoList called with currency:", selectedCurrency);
   try {
     const exchangeRates = await fetchExchangeRates();
-    const conversionRate = exchangeRates[selectedCurrency] || 1;
 
-    const response = await apiList.get("assets"); // 🔹 `/` حذف شد
+    if (!exchangeRates) {
+      console.error("❌ ERROR: Exchange rates not available. Returning empty list.");
+      return [];
+    }
+
+    const conversionRate = exchangeRates[selectedCurrency] || exchangeRates["USD"] || 1;
+    const response = await apiList.get("assets");
+
     let coins = response.data.data;
-
     coins = coins.map((coin) => ({
       ...coin,
       priceConverted: (parseFloat(coin.priceUsd) / conversionRate).toFixed(2),
@@ -58,10 +80,7 @@ export const getCryptoList = async (selectedCurrency = "USD") => {
     console.log(`✅ Updated coin prices for ${selectedCurrency}:`, coins);
     return coins;
   } catch (error) {
-    console.error(
-      "❌ ERROR FETCHING COINS:",
-      error.response?.data || error.message
-    );
+    console.error("❌ ERROR FETCHING COINS:", error.response?.data || error.message);
     return [];
   }
 };
@@ -69,13 +88,10 @@ export const getCryptoList = async (selectedCurrency = "USD") => {
 // ✅ دریافت اطلاعات جزئیات یک صرافی خاص بر اساس `exchangeId`
 export const getExchangeDetails = async (exchangeId) => {
   try {
-    const response = await apiList.get(`exchanges/${exchangeId}`); // 🔹 مسیر تصحیح شد
+    const response = await apiList.get(`exchanges/${exchangeId}`);
     return response.data.data || "N/A";
   } catch (error) {
-    console.error(
-      `❌ ERROR FETCHING EXCHANGE DETAILS (${exchangeId}):`,
-      error.response?.data || error.message
-    );
+    console.error(`❌ ERROR FETCHING EXCHANGE DETAILS (${exchangeId}):`, error.response?.data || error.message);
     return "N/A";
   }
 };
@@ -83,15 +99,10 @@ export const getExchangeDetails = async (exchangeId) => {
 // ✅ دریافت لیست بازارهای یک صرافی خاص بر اساس `exchangeId`
 export const getExchangeMarkets = async (exchangeId, limit = 50) => {
   try {
-    const response = await apiList.get(
-      `markets?exchangeId=${exchangeId}&limit=${limit}`
-    ); // 🔹 مسیر تصحیح شد
+    const response = await apiList.get(`markets?exchangeId=${exchangeId}&limit=${limit}`);
     return response.data.data || [];
   } catch (error) {
-    console.error(
-      `❌ ERROR FETCHING EXCHANGE MARKETS (${exchangeId}):`,
-      error.response?.data || error.message
-    );
+    console.error(`❌ ERROR FETCHING EXCHANGE MARKETS (${exchangeId}):`, error.response?.data || error.message);
     return [];
   }
 };
@@ -107,73 +118,54 @@ export const getTopPairForExchange = async (exchangeId) => {
   }
 
   if (requestQueue.has(exchangeId)) {
-    return requestQueue.get(exchangeId); // در حال پردازش یک درخواست دیگر، منتظر می‌مانیم
+    return requestQueue.get(exchangeId);
   }
 
   const fetchPromise = new Promise((resolve) => {
     setTimeout(async () => {
       try {
-        const response = await apiList.get(`markets?exchangeId=${exchangeId}`); // 🔹 مسیر تصحیح شد
+        const response = await apiList.get(`markets?exchangeId=${exchangeId}`);
         const markets = response.data.data;
 
         if (!markets || markets.length === 0) {
           resolve("N/A");
         } else {
           const topMarket = markets.reduce((prev, current) =>
-            parseFloat(current.volumeUsd24Hr) > parseFloat(prev.volumeUsd24Hr)
-              ? current
-              : prev
+            parseFloat(current.volumeUsd24Hr) > parseFloat(prev.volumeUsd24Hr) ? current : prev
           );
-          const topPair = `${topMarket?.baseSymbol ?? "Unknown"}/${
-            topMarket?.quoteSymbol ?? "Unknown"
-          }`;
-          topPairCache[exchangeId] = topPair; // ذخیره مقدار در `Cache`
+          const topPair = `${topMarket?.baseSymbol ?? "Unknown"}/${topMarket?.quoteSymbol ?? "Unknown"}`;
+          topPairCache[exchangeId] = topPair;
           resolve(topPair);
         }
       } catch (error) {
-        console.error(
-          `❌ ERROR FETCHING TOP PAIR (${exchangeId}):`,
-          error.response?.data || error.message
-        );
+        console.error(`❌ ERROR FETCHING TOP PAIR (${exchangeId}):`, error.response?.data || error.message);
         resolve("N/A");
       } finally {
-        requestQueue.delete(exchangeId); // ✅ حالا همیشه حذف می‌شه
+        requestQueue.delete(exchangeId);
       }
-    }, 200); // تأخیر 200 میلی‌ثانیه بین درخواست‌ها
+    }, 200);
   });
 
   requestQueue.set(exchangeId, fetchPromise);
   return fetchPromise;
 };
 
-// ✅ دریافت نرخ ارزها (این تابع دیگر نیازی به درخواست اضافه ندارد)
-export const getRates = async () => {
-  return await fetchExchangeRates();
-};
 
 // =========================================================
 // ✅ دریافت تاریخچه‌ی قیمت یک کوین برای چارت
 export const getCoinHistory = async (coinId, interval = "d1") => {
-  let apiInterval = "d1"; // مقدار پیش‌فرض
-
-  if (interval === "1D") apiInterval = "m1"; 
-  else if (["1W", "1M", "3M", "6M", "1Y", "All"].includes(interval)) apiInterval = "d1";
-
   try {
-    const response = await apiList.get(`assets/${coinId}/history?interval=${apiInterval}`);
-
+    const response = await apiList.get(`assets/${coinId}/history?interval=${interval}`);
     if (!response.data?.data || response.data.data.length === 0) {
-      console.warn(`⚠️ No history data for ${coinId} - ${apiInterval}`);
+      console.warn(`⚠️ No history data for ${coinId} - ${interval}`);
       return [];
     }
-
     return response.data.data;
   } catch (error) {
     console.error(`❌ ERROR FETCHING HISTORY FOR ${coinId}:`, error.response?.data || error.message);
     return [];
   }
 };
-
 // ---------------------------------------------------------------------------------------
 
 // ✅ اضافه کردن `Interceptor` برای بررسی خطای 401 (توکن منقضی شده)
@@ -183,14 +175,24 @@ export function setupAxiosInterceptors(logout) {
     (error) => {
       if (error.response?.status === 401) {
         console.warn("⛔ توکن منقضی شده، کاربر به صفحه لاگین هدایت می‌شود.");
-        logout(); // خروج خودکار کاربر
-        window.location.href = "/login"; // هدایت به صفحه لاگین
+        logout();
+        window.location.href = "/login";
       }
       return Promise.reject(error);
     }
   );
 }
 
+
+// ✅ مدیریت درخواست‌های `Too Many Requests (429)`
+apiList.interceptors.response.use(null, async (error) => {
+  if (error.response?.status === 429) {
+    console.warn("⚠️ Too Many Requests. Retrying after delay...");
+    await new Promise((resolve) => setTimeout(resolve, 1000)); 
+    return apiList(error.config); 
+  }
+  return Promise.reject(error);
+});
 // ---------------------------------------------------------------------
 
 export const refreshToken = async (oldRefreshToken) => {

@@ -1,14 +1,14 @@
 import { Fragment, useContext } from "react";
 import { createRoot } from "react-dom/client";
-import { AuthProvider, AuthContext } from "../src/Context/AuthContext"; // 🔹 اضافه شد
-import { setupAxiosInterceptors } from "../src/Utils/CryptoService"; // 🔹 اضافه شد
+import { AuthContext, AuthProvider } from "../src/Context/AuthContext";   
+import { setupAxiosInterceptors } from "../src/Utils/CryptoService"; 
 import RouterComponent from "./Router";
 import "@ant-design/v5-patch-for-react-19";
 import "./Styles/CssReset.css";
 
 function App() {
-  const { logout } = useContext(AuthContext); // دسترسی به تابع `logout`
-  setupAxiosInterceptors(logout); // مقداردهی `Interceptor`
+  const { logout } = useContext(AuthContext); 
+  setupAxiosInterceptors(logout); 
   return <RouterComponent />;
 }
 

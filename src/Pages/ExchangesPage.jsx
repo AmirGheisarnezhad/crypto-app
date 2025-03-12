@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback  } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { apiList, fetchExchangeRates, getTopPairForExchange } from "../Utils/CryptoService";
 import { Link, useOutletContext } from "react-router-dom";
 import { Pagination } from "antd";
@@ -15,6 +15,9 @@ export default function ExchangesPage() {
   const [exchangeRates, setExchangeRates] = useState({});
   const pageSize = 10;
 
+  // ✅ کش برای ذخیره `Top Pairs` و جلوگیری از درخواست‌های اضافی
+  const topPairCache = new Map();
+
   const getExchanges = useCallback(async () => {
     try {
       console.log("🔄 Fetching exchanges data for currency:", selectedCurrency);
@@ -26,29 +29,38 @@ export default function ExchangesPage() {
 
       // دریافت لیست صرافی‌ها
       const response = await apiList.get("exchanges");
-      if (response.data?.data) {
+      if (response.data?.data?.length > 0) {
         const sortedExchanges = response.data.data.sort((a, b) => a.rank - b.rank);
 
-        // دریافت Top Pair برای هر صرافی
+        // دریافت `Top Pair` فقط برای صرافی‌هایی که مقدار `Cache` ندارند
         const exchangesWithTopPair = await Promise.all(
           sortedExchanges.map(async (exchange) => {
+            if (topPairCache.has(exchange.exchangeId)) {
+              return { ...exchange, topPair: topPairCache.get(exchange.exchangeId) };
+            }
+
             const topPair = (await getTopPairForExchange(exchange.exchangeId)) || "N/A";
+            topPairCache.set(exchange.exchangeId, topPair); // ذخیره در `Cache`
             return { ...exchange, topPair };
           })
         );
 
         setExchanges(exchangesWithTopPair);
+      } else {
+        console.warn("⚠️ No exchanges data received.");
+        setExchanges([]);
       }
     } catch (e) {
       console.error("❌ ERROR fetching exchanges:", e);
+      setExchanges([]);
     } finally {
       setLoading(false);
     }
-  },[selectedCurrency]); // ✅ وابسته به selectedCurrency
+  }, [selectedCurrency]);
 
   useEffect(() => {
     getExchanges();
-  }, [getExchanges]); // ✅ حالا تابع همیشه پایدار می‌مونه
+  }, [getExchanges]);
 
   useEffect(() => {
     localStorage.setItem("currentPage", currentPage);
@@ -56,6 +68,7 @@ export default function ExchangesPage() {
 
   const convertCurrency = (amount) => {
     if (!amount || !exchangeRates[selectedCurrency]) {
+      console.warn(`⚠️ Cannot convert currency for ${selectedCurrency}, using USD as fallback.`);
       return "N/A";
     }
     return (parseFloat(amount) / (exchangeRates[selectedCurrency] || 1)).toFixed(2);
@@ -70,6 +83,8 @@ export default function ExchangesPage() {
       <h1 className="title">🏛️ List of Exchanges</h1>
       {loading ? (
         <Loader />
+      ) : exchanges.length === 0 ? (
+        <p style={{ color: "red", textAlign: "center" }}>❌ No exchanges data available.</p>
       ) : (
         <>
           <table className="exchanges-table">
@@ -97,7 +112,7 @@ export default function ExchangesPage() {
                   socket,
                   rank,
                 }) => (
-                  <tr key={exchangeId ?? crypto.randomUUID()}>
+                  <tr key={exchangeId || name || Math.random().toString(36).substring(7)}>
                     <td>{rank ?? "N/A"}</td>
                     <td>{name?.trim() || "Unknown"}</td>
                     <td>{tradingPairs || "N/A"}</td>
@@ -112,7 +127,7 @@ export default function ExchangesPage() {
                       )}
                     </td>
                     <td>
-                      <Link to={`/exchange/${exchangeId ?? "unknown"}`} className="view-link">
+                      <Link to={`/exchange/${exchangeId || "unknown"}`} className="view-link">
                         🔍 View
                       </Link>
                     </td>

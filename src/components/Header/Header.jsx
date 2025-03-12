@@ -4,10 +4,9 @@ import { AuthContext } from "../../context/AuthContext";
 import { apiList } from "../../Utils/CryptoService"; // Import API service
 import "../Header/Header.css";
 
-export default function Header({ selectedCurrency, setSelectedCurrency }) {
+export default function Header({ selectedCurrency = "USD", setSelectedCurrency }) {
   const { isAuthenticated, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  
 
   const [currencies, setCurrencies] = useState([]);
   const [search, setSearch] = useState("");
@@ -20,7 +19,7 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
   const [filteredResults, setFilteredResults] = useState([]); // Filtered results for dropdown
 
   const handleLogin = () => {
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   // ✅ Fetch currency rates (Existing functionality)
@@ -28,28 +27,32 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
     async function fetchCurrencies() {
       try {
         const response = await fetch("https://api.coincap.io/v2/rates");
+        if (!response.ok) throw new Error("Failed to fetch currency rates.");
+        
         const data = await response.json();
-        setCurrencies(data.data);
+        setCurrencies(data.data || []);
       } catch (error) {
-        console.error("Error fetching currencies:", error);
+        console.error("❌ ERROR fetching currencies:", error);
       }
     }
     fetchCurrencies();
   }, []);
 
   useEffect(() => {
-    if (search.trim() === "") {
+    if (!search.trim()) {
       setFilteredCurrencies([]);
       setShowDropdown(false);
-    } else {
-      const filtered = currencies.filter(
-        (currency) =>
-          currency.id.toLowerCase().includes(search.toLowerCase()) ||
-          (currency.symbol && currency.symbol.toLowerCase().includes(search.toLowerCase()))
-      );
-      setFilteredCurrencies(filtered);
-      setShowDropdown(filtered.length > 0);
+      return;
     }
+
+    const filtered = currencies.filter(
+      (currency) =>
+        currency.id.toLowerCase().includes(search.toLowerCase()) ||
+        (currency.symbol && currency.symbol.toLowerCase().includes(search.toLowerCase()))
+    );
+
+    setFilteredCurrencies(filtered);
+    setShowDropdown(filtered.length > 0);
   }, [search, currencies]);
 
   const handleSelectCurrency = (currency) => {
@@ -61,15 +64,14 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
   // ✅ Fetch assets & exchanges for search input
   useEffect(() => {
     async function fetchData() {
-      
       try {
         const assetsResponse = await apiList.get("assets");
         const exchangesResponse = await apiList.get("exchanges");
-        console.log("exchangesResponse: ", exchangesResponse)
-        setAssets(assetsResponse.data.data);
-        setExchanges(exchangesResponse.data.data);
+
+        setAssets(assetsResponse.data?.data || []);
+        setExchanges(exchangesResponse.data?.data || []);
       } catch (error) {
-        console.error("Error fetching assets & exchanges:", error);
+        console.error("❌ ERROR fetching assets & exchanges:", error);
       }
     }
     fetchData();
@@ -77,42 +79,41 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
 
   // ✅ Filter assets & exchanges based on search input
   useEffect(() => {
-    if (!assets || !exchanges) return; // 🚀 جلوگیری از اجرای کد روی undefined
-    if (searchAsset.trim() === "") {
+    if (!searchAsset?.trim()) {
       setFilteredResults([]);
       return;
     }
-  
+
     const filteredAssets = assets.filter(
       (item) =>
         (item.id && item.id.toLowerCase().includes(searchAsset.toLowerCase())) ||
         (item.symbol && item.symbol.toLowerCase().includes(searchAsset.toLowerCase())) ||
         (item.name && item.name.toLowerCase().includes(searchAsset.toLowerCase()))
     );
-  
+
     const filteredExchanges = exchanges.filter(
       (item) =>
         (item.exchangeId && item.exchangeId.toLowerCase().includes(searchAsset.toLowerCase())) ||
         (item.name && item.name.toLowerCase().includes(searchAsset.toLowerCase()))
     );
-  
+
     setFilteredResults([...filteredAssets, ...filteredExchanges]);
   }, [searchAsset, assets, exchanges]);
 
   // ✅ Handle selection & navigation
   const handleSelectItem = (item) => {
-    const isExchange = exchanges.some((exchange) => exchange.id === item.id);
-  
-    console.log("🔎 Navigating to:", isExchange ? `/exchange/${item.id}` : `/coin/${item.id}`);
-  
-    if (isExchange) {
-      navigate(`/exchange/${item.id}`, { replace: true });
-    } else {
-      navigate(`/coin/${item.id}`, { replace: true });
+    try {
+      const isExchange = exchanges.some((exchange) => exchange.id === item.id);
+
+      console.log("🔎 Navigating to:", isExchange ? `/exchange/${item.id}` : `/coin/${item.id}`);
+
+      navigate(isExchange ? `/exchange/${item.id}` : `/coin/${item.id}`, { replace: true });
+
+      setSearchAsset(""); // پاک کردن مقدار جستجو
+      setFilteredResults([]); // بستن لیست جستجو
+    } catch (error) {
+      console.error("❌ ERROR handling search selection:", error);
     }
-  
-    setSearchAsset("");  // پاک کردن مقدار جستجو
-    setFilteredResults([]); // بستن لیست جستجو
   };
 
   return (
@@ -155,21 +156,21 @@ export default function Header({ selectedCurrency, setSelectedCurrency }) {
             className="search-input"
           />
           {filteredResults.length > 0 && (
-           <ul className="search-dropdown">
-           {filteredResults.map((item, index) => (
-             <li key={index} className="search-item">
-               <Link 
-                 to={exchanges.some((exchange) => exchange.id === item.id) ? `/exchange/${item.id}` : `/coin/${item.id}`}
-                 onClick={() => {
-                   setSearchAsset("");  // پاک کردن مقدار جستجو
-                   setFilteredResults([]); // بستن لیست جستجو
-                 }}
-               >
-                 {item.name} ({item.symbol ?? item.id})
-               </Link>
-             </li>
-           ))}
-         </ul>
+            <ul className="search-dropdown">
+              {filteredResults.map((item, index) => (
+                <li key={index} className="search-item">
+                  <Link
+                    to={exchanges.some((exchange) => exchange.id === item.id) ? `/exchange/${item.id}` : `/coin/${item.id}`}
+                    onClick={() => {
+                      setSearchAsset(""); // پاک کردن مقدار جستجو
+                      setFilteredResults([]); // بستن لیست جستجو
+                    }}
+                  >
+                    {item.name} ({item.symbol ?? item.id})
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 

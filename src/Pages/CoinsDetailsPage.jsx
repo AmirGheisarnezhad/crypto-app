@@ -1,40 +1,73 @@
-import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate, useOutletContext } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { apiList, fetchExchangeRates } from "../Utils/CryptoService";
 import { Button } from "antd";
 import "../Styles/CoinsDetailsPage.css";
 
 export default function CoinsPage() {
   const { coin_id } = useParams();
-  const { selectedCurrency } = useOutletContext(); 
+  const { selectedCurrency } = useOutletContext();
   const [coin, setCoin] = useState({});
   const [allCoins, setAllCoins] = useState([]);
   const [visibleCount, setVisibleCount] = useState(10);
-  const [exchangeRates, setExchangeRates] = useState({ USD: 1 });
+  const [exchangeRates, setExchangeRates] = useState({});
+  const [error, setError] = useState(false); // مدیریت خطای دریافت نرخ ارز
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function getExchangeRates() {
-      const rates = await fetchExchangeRates();
-      setExchangeRates(rates);
+    let isMounted = true;
+
+    async function fetchData() {
+      if (!coin_id) return;
+
+      console.log(`🔍 Fetching coin details for: ${coin_id}`);
+      try {
+        const response = await apiList.get(`/assets/${coin_id}`);
+        if (isMounted) setCoin(response.data.data || {});
+      } catch (e) {
+        console.error("❌ ERROR fetching coin details:", e);
+      }
     }
+
+    fetchData();
+    return () => {
+      isMounted = false;
+    }; // جلوگیری از Memory Leak
+  }, [coin_id]);
+
+  useEffect(() => {
+    async function getExchangeRates() {
+      console.log("🔄 Fetching exchange rates...");
+      const rates = await fetchExchangeRates();
+
+      if (!rates || Object.keys(rates).length === 0) {
+        console.error("❌ ERROR: Failed to fetch exchange rates!");
+        setError(true);
+        setExchangeRates({ USD: 1 }); // مقدار پیش‌فرض فقط USD
+        return;
+      }
+
+      setExchangeRates(rates);
+      setError(false);
+    }
+
     getExchangeRates();
   }, []);
 
-  async function getCoin() {
-    try {
-      const response = await apiList.get(`/assets/${coin_id}`);
-      setCoin(response.data.data);
-    } catch (e) {
-      console.log("ERROR : ", e);
-    }
-  }
-
   async function getAllCoins() {
+    const cachedCoins = JSON.parse(localStorage.getItem("allCoins"));
+    if (cachedCoins) {
+      console.log("✅ Using cached coins list");
+      setAllCoins(cachedCoins);
+      return;
+    }
+
     try {
+      console.log("⚡ Fetching coins from API...");
       const response = await apiList.get("assets");
       if (response.data && response.data.data) {
         setAllCoins(response.data.data);
+        localStorage.setItem("allCoins", JSON.stringify(response.data.data));
       }
     } catch (e) {
       console.log("ERROR fetching coins: ", e);
@@ -42,27 +75,46 @@ export default function CoinsPage() {
   }
 
   useEffect(() => {
-    getCoin();
     getAllCoins();
-  }, [coin_id]);
+  }, []);
+
+  const conversionRate = useMemo(() => {
+    if (error) {
+      return 1; // مقدار پیش‌فرض در صورت بروز خطا
+    }
+
+    if (!exchangeRates || Object.keys(exchangeRates).length === 0) {
+      console.warn("⚠️ Exchange rates are empty! Waiting for data...");
+      return 1;
+    }
+
+    if (!exchangeRates[selectedCurrency]) {
+      console.error(`❌ ERROR: No exchange rate found for ${selectedCurrency}! Using USD.`);
+      return exchangeRates["USD"] || 1; // مقدار USD را جایگزین می‌کنیم
+    }
+
+    console.log("🔄 Calculating conversion rate for:", selectedCurrency, exchangeRates);
+    return exchangeRates[selectedCurrency];
+  }, [exchangeRates, selectedCurrency]);
+
+  console.log("🔍 Checking exchange rate for:", selectedCurrency, exchangeRates[selectedCurrency]);
 
   const convertPrice = (price) => {
-    return (parseFloat(price) / (exchangeRates[selectedCurrency] || 1)).toFixed(2);
+    return (parseFloat(price) / conversionRate).toFixed(2);
   };
-
 
   const handleCoinClick = (coinId) => {
     navigate(`/coin/${coinId}`);
   };
-  
 
   return (
     <div className="container">
-      {/* 📌 اطلاعات کوین با ساختار جدید */}
+      {error && <p style={{ color: "red" }}>❌ نرخ تبدیل ارز دریافت نشد! لطفاً بعداً امتحان کنید.</p>}
+
       <div className="crypto-info">
         <h1>{coin.symbol}</h1>
         <h2>{coin.name}</h2>
-        
+
         <div className="crypto-details">
           <div className="crypto-detail-item">
             <strong>Price</strong> {selectedCurrency} {convertPrice(coin?.priceUsd ?? 0)}
@@ -71,7 +123,7 @@ export default function CoinsPage() {
             <strong>Rank</strong> {coin.rank ?? "N/A"}
           </div>
           <div className="crypto-detail-item">
-            <strong>Supply</strong> {parseFloat(coin.supply).toLocaleString()}
+            <strong>Supply</strong> {parseFloat(coin.supply || 0).toLocaleString()}
           </div>
           <div className="crypto-detail-item">
             <strong>Market Cap</strong> {selectedCurrency} {convertPrice(coin.marketCapUsd)}
@@ -83,7 +135,7 @@ export default function CoinsPage() {
             <strong>24h Volume</strong> {selectedCurrency} {convertPrice(coin.volumeUsd24Hr)}
           </div>
           <div className="crypto-detail-item">
-            <strong>24h Change</strong> 
+            <strong>24h Change</strong>
             <span className={coin.changePercent24Hr < 0 ? "negative" : "positive"}>
               {parseFloat(coin.changePercent24Hr).toFixed(2)}%
             </span>
@@ -95,7 +147,6 @@ export default function CoinsPage() {
         </button>
       </div>
 
-      {/* 📌 لیست تمام ارزها در قالب جدول */}
       <div className="crypto-list">
         <h2>🔥 List of all currencies </h2>
         <table className="crypto-table">
@@ -115,12 +166,11 @@ export default function CoinsPage() {
           <tbody>
             {allCoins.slice(0, visibleCount).map(({ id, rank, symbol, name, priceUsd, supply, marketCapUsd, vwap24Hr, volumeUsd24Hr, changePercent24Hr }) => (
               <tr key={id} onClick={() => handleCoinClick(id)}>
-
                 <td>{rank ?? "N/A"}</td>
                 <td>{symbol}</td>
                 <td>{name}</td>
                 <td>{convertPrice(priceUsd)}</td>
-                <td>{parseFloat(supply).toLocaleString()}</td>
+                <td>{parseFloat(supply || 0).toLocaleString()}</td>
                 <td>{convertPrice(marketCapUsd)}</td>
                 <td>{convertPrice(vwap24Hr)}</td>
                 <td>{convertPrice(volumeUsd24Hr)}</td>
@@ -131,16 +181,6 @@ export default function CoinsPage() {
             ))}
           </tbody>
         </table>
-
-        {visibleCount < allCoins.length && (
-          <Button type="primary" onClick={() => setVisibleCount(visibleCount + 10)} className="see-more-button">
-            See More
-          </Button>
-        )}
-      </div>
-
-      <div className="back-container">
-        <button className="back-button" onClick={() => navigate("/")}>🔙 Back to Home</button>
       </div>
     </div>
   );
