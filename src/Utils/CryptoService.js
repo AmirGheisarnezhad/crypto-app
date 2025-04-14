@@ -6,7 +6,7 @@ import { useContext } from "react";
 // export const API_URL = isLocalhost
 //   ? "http://localhost:5000/proxy/"
 //   : "https://crypto-app-bjvy.onrender.com/proxy/";
-export const API_URL ="https://crypto-app-bjvy.onrender.com/proxy/";
+export const API_URL ="https://crypto-app-bjvy.onrender.com";
 
 export const apiList = axios.create({
   baseURL: API_URL,
