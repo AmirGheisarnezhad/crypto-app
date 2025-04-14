@@ -1,12 +1,12 @@
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext"; 
 import { useContext } from "react";
-const isLocalhost = window.location.hostname === "localhost";
+// const isLocalhost = window.location.hostname === "localhost";
 
-export const API_URL = isLocalhost
-  ? "http://localhost:5000/proxy/"
-  : "https://crypto-app-bjvy.onrender.com/proxy/";
-
+// export const API_URL = isLocalhost
+//   ? "http://localhost:5000/proxy/"
+//   : "https://crypto-app-bjvy.onrender.com/proxy/";
+export const API_URL ="https://crypto-app-bjvy.onrender.com/proxy/";
 
 export const apiList = axios.create({
   baseURL: API_URL,
