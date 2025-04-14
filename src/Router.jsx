@@ -13,7 +13,7 @@ const ExchangeDetailsPage = lazy(() => import("./Pages/ExchangeDetailsPage"));
 
 export default function RouterComponent() {
   const { isAuthenticated } = useContext(AuthContext);
-
+//
   return (
     <HashRouter>
       <Routes>
