@@ -7,7 +7,8 @@ const COINCAP_API_KEY = "a1a2d89d2b33bc5fff6d14c940b693b3ef058b3f75f966db0e7c381
 const app = express();
 app.use(cors());
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
 
 // ✅ ایجاد Delay برای جلوگیری از Too Many Requests (429)
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,11 +28,11 @@ const fetchWithRetry = async (url, retries = 3, delayMs = 500) => {
       const status = error.response?.status || 500;
 
       if (status === 429) {
-        console.warn(`⚠️ Too Many Requests (Retrying in ${delayMs}ms)...`);
+        console.warn(` Too Many Requests (Retrying in ${delayMs}ms)...`);
         await delay(delayMs);
         delayMs *= 2; // `Exponential Backoff`
       } else if ([500, 502, 503].includes(status) && attempt < retries) {
-        console.warn(`⚠️ Server error ${status}, retrying in ${delayMs}ms...`);
+        console.warn(` Server error ${status}, retrying in ${delayMs}ms...`);
         await delay(delayMs);
         delayMs *= 2;
       } else {
@@ -49,7 +50,7 @@ app.get("/proxy/*", async (req, res) => {
 
     // بررسی درخواست‌های مکرر از یک IP خاص (محدودیت 3 ثانیه)
     if (rateLimit.has(ip) && now - rateLimit.get(ip) < 3000) {
-      console.warn(`⚠️ Too Many Requests from ${ip}, blocking for 3 seconds`);
+      console.warn(` Too Many Requests from ${ip}, blocking for 3 seconds`);
       return res.status(429).json({ error: "Too Many Requests. Try again later." });
     }
 
@@ -59,12 +60,12 @@ app.get("/proxy/*", async (req, res) => {
     if (!url) return res.status(400).json({ error: "Missing URL parameter" });
 
     const fullUrl = `https://rest.coincap.io/v3/${url}`;
-    console.log(`🔄 Fetching: ${fullUrl}`);
+    console.log(` Fetching: ${fullUrl}`);
 
     const data = await fetchWithRetry(fullUrl);
     res.json(data);
   } catch (error) {
-    console.error("❌ Proxy Server Error:", error.message);
+    console.error(" Proxy Server Error:", error.message);
     res.status(error.response?.status || 500).json({
       error: "Request failed",
       status: error.response?.status || 500,
@@ -73,4 +74,4 @@ app.get("/proxy/*", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`🚀 Proxy server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(` Proxy server running on http://localhost:${PORT}`));
