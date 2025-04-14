@@ -5,7 +5,7 @@ import "../components/Charts/CoinChart.css";
 
 export default function CoinChartPage() {
   const { coin_id } = useParams();
-  const [selectedInterval, setSelectedInterval] = useState("1M"); // Default interval
+  const [selectedInterval, setSelectedInterval] = useState("1M"); 
   const intervals = ["1D", "1W", "1M", "3M", "6M", "1Y", "All"];
 
   return (

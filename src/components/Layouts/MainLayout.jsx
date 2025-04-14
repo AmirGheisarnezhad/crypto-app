@@ -1,18 +1,18 @@
 import { Fragment, useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import Header from "../Header/Header"; // ✅ اصلاح ایمپورت Header.jsx
+import Header from "../Header/Header"; 
 import Footer from "../Footer/Footer";
-import "../../Styles/MainLayout.css"; // استایل جداگانه برای layout
+import "../../Styles/MainLayout.css"; 
 
 export default function MainLayout() {
   // ✅ مدیریت انتخاب واحد پولی در سطح بالا
   const [selectedCurrency, setSelectedCurrency] = useState(() => {
-    return localStorage.getItem("selectedCurrency") || "USD"; // مقدار پیش‌فرض USD
+    return localStorage.getItem("selectedCurrency") || "USD"; 
   });
 
   useEffect(() => {
     console.log("Updating localStorage with:", selectedCurrency);
-    localStorage.setItem("selectedCurrency", selectedCurrency); // ذخیره در localStorage
+    localStorage.setItem("selectedCurrency", selectedCurrency); 
   }, [selectedCurrency]);
 
   console.log("Selected currency in MainLayout:", selectedCurrency);
@@ -21,7 +21,7 @@ export default function MainLayout() {
     <Fragment>
       <Header selectedCurrency={selectedCurrency} setSelectedCurrency={setSelectedCurrency} />
       <div className="content">
-        <Outlet context={{ selectedCurrency }} key={selectedCurrency} /> {/* ✅ پاس دادن `selectedCurrency` به صفحات داخلی */}
+        <Outlet context={{ selectedCurrency }} key={selectedCurrency} /> 
       </div>
       <Footer />
     </Fragment>

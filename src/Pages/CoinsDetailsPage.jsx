@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import { apiList, fetchExchangeRates } from "../Utils/CryptoService";
-import { Button } from "antd";
 import "../Styles/CoinsDetailsPage.css";
 
 export default function CoinsPage() {
@@ -11,7 +10,7 @@ export default function CoinsPage() {
   const [allCoins, setAllCoins] = useState([]);
   const [visibleCount, setVisibleCount] = useState(10);
   const [exchangeRates, setExchangeRates] = useState({});
-  const [error, setError] = useState(false); // مدیریت خطای دریافت نرخ ارز
+  const [error, setError] = useState(false); 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,30 +19,30 @@ export default function CoinsPage() {
     async function fetchData() {
       if (!coin_id) return;
 
-      console.log(`🔍 Fetching coin details for: ${coin_id}`);
+      console.log( `Fetching coin details for: ${coin_id}`);
       try {
         const response = await apiList.get(`/assets/${coin_id}`);
         if (isMounted) setCoin(response.data.data || {});
       } catch (e) {
-        console.error("❌ ERROR fetching coin details:", e);
+        console.error(" ERROR fetching coin details:", e);
       }
     }
 
     fetchData();
     return () => {
       isMounted = false;
-    }; // جلوگیری از Memory Leak
+    }; 
   }, [coin_id]);
 
   useEffect(() => {
     async function getExchangeRates() {
-      console.log("🔄 Fetching exchange rates...");
+      console.log(" Fetching exchange rates...");
       const rates = await fetchExchangeRates();
 
       if (!rates || Object.keys(rates).length === 0) {
-        console.error("❌ ERROR: Failed to fetch exchange rates!");
+        console.error(" ERROR: Failed to fetch exchange rates!");
         setError(true);
-        setExchangeRates({ USD: 1 }); // مقدار پیش‌فرض فقط USD
+        setExchangeRates({ USD: 1 }); 
         return;
       }
 
@@ -57,13 +56,13 @@ export default function CoinsPage() {
   async function getAllCoins() {
     const cachedCoins = JSON.parse(localStorage.getItem("allCoins"));
     if (cachedCoins) {
-      console.log("✅ Using cached coins list");
+      console.log(" Using cached coins list");
       setAllCoins(cachedCoins);
       return;
     }
 
     try {
-      console.log("⚡ Fetching coins from API...");
+      console.log(" Fetching coins from API...");
       const response = await apiList.get("assets");
       if (response.data && response.data.data) {
         setAllCoins(response.data.data);
@@ -80,24 +79,24 @@ export default function CoinsPage() {
 
   const conversionRate = useMemo(() => {
     if (error) {
-      return 1; // مقدار پیش‌فرض در صورت بروز خطا
+      return 1; 
     }
 
     if (!exchangeRates || Object.keys(exchangeRates).length === 0) {
-      console.warn("⚠️ Exchange rates are empty! Waiting for data...");
+      console.warn(" Exchange rates are empty! Waiting for data...");
       return 1;
     }
 
     if (!exchangeRates[selectedCurrency]) {
-      console.error(`❌ ERROR: No exchange rate found for ${selectedCurrency}! Using USD.`);
-      return exchangeRates["USD"] || 1; // مقدار USD را جایگزین می‌کنیم
+      console.error( "ERROR: No exchange rate found for ${selectedCurrency}! Using USD.");
+      return exchangeRates["USD"] || 1; 
     }
 
-    console.log("🔄 Calculating conversion rate for:", selectedCurrency, exchangeRates);
+    console.log(" Calculating conversion rate for:", selectedCurrency, exchangeRates);
     return exchangeRates[selectedCurrency];
   }, [exchangeRates, selectedCurrency]);
 
-  console.log("🔍 Checking exchange rate for:", selectedCurrency, exchangeRates[selectedCurrency]);
+  console.log(" Checking exchange rate for:", selectedCurrency, exchangeRates[selectedCurrency]);
 
   const convertPrice = (price) => {
     return (parseFloat(price) / conversionRate).toFixed(2);
@@ -109,7 +108,7 @@ export default function CoinsPage() {
 
   return (
     <div className="container">
-      {error && <p style={{ color: "red" }}>❌ نرخ تبدیل ارز دریافت نشد! لطفاً بعداً امتحان کنید.</p>}
+      {error && <p style={{ color: "red" }}> Currency conversion rate not received! Please try again later.</p>}
 
       <div className="crypto-info">
         <h1>{coin.symbol}</h1>
@@ -143,12 +142,12 @@ export default function CoinsPage() {
         </div>
 
         <button className="chart-button" onClick={() => navigate(`/coin/${coin_id}/chart`)}>
-          📈 View the chart
+           View the chart
         </button>
       </div>
 
       <div className="crypto-list">
-        <h2>🔥 List of all currencies </h2>
+        <h2> List of all currencies </h2>
         <table className="crypto-table">
           <thead>
             <tr>

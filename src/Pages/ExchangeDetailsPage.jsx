@@ -16,9 +16,9 @@ export default function ExchangeDetailsPage() {
   const [rates, setRates] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(10); // تعداد آیتم‌های قابل نمایش
+  const [visibleCount, setVisibleCount] = useState(10); 
 
-  const [customPairs, setCustomPairs] = useState({}); // ذخیره جفت‌ارزهای تغییر یافته
+  const [customPairs, setCustomPairs] = useState({}); 
 
   const handlePairChange = (marketKey) => {
     if (!markets || markets.length === 0) return;
@@ -28,13 +28,13 @@ export default function ExchangeDetailsPage() {
 
     setCustomPairs((prevPairs) => ({
       ...prevPairs,
-      [marketKey]: newPair, // مقدار جدید را برای این آیتم ذخیره می‌کنیم
+      [marketKey]: newPair, 
     }));
   };
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true); // نمایش لودینگ هنگام تغییر صفحه
+      setLoading(true); 
       try {
         const updatedRates = await fetchExchangeRates(selectedCurrency);
         setRates(updatedRates);
@@ -51,12 +51,12 @@ export default function ExchangeDetailsPage() {
       } finally {
         setLoading(false);
       }
-      console.log("Exchange ID from URL:", exchangeId); // ✅ بررسی مقدار `exchangeId`
+      console.log("Exchange ID from URL:", exchangeId); 
 
     }
 
     fetchData();
-  }, [exchangeId, selectedCurrency]); // 🔹 `exchangeId` را به dependencies اضافه کن
+  }, [exchangeId, selectedCurrency]); 
 
   const convertPrice = (price) =>
     price
@@ -127,7 +127,7 @@ export default function ExchangeDetailsPage() {
               {markets.slice(0, visibleCount).map((market, index) => {
                 const marketKey =
                   market.marketId ||
-                  `${market.baseSymbol}-${market.quoteSymbol}-${index}`; // مقدار یکتا
+                  `${market.baseSymbol}-${market.quoteSymbol}-${index}`; 
 
                 return (
                   <tr

@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
+const COINCAP_API_KEY = "a1a2d89d2b33bc5fff6d14c940b693b3ef058b3f75f966db0e7c381ae5b83dbd";
+
 
 const app = express();
 app.use(cors());
@@ -17,7 +19,9 @@ const rateLimit = new Map();
 const fetchWithRetry = async (url, retries = 3, delayMs = 500) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const response = await axios.get(url, { timeout: 5000 });
+      const response = await axios.get(url, { timeout: 5000,  headers: {
+        Authorization: `Bearer ${COINCAP_API_KEY}`,
+      }, });
       return response.data;
     } catch (error) {
       const status = error.response?.status || 500;
@@ -54,7 +58,7 @@ app.get("/proxy/*", async (req, res) => {
     let url = req.params[0] + (req._parsedUrl.search || "");
     if (!url) return res.status(400).json({ error: "Missing URL parameter" });
 
-    const fullUrl = `https://api.coincap.io/v2/${url}`;
+    const fullUrl = `https://rest.coincap.io/v3/${url}`;
     console.log(`🔄 Fetching: ${fullUrl}`);
 
     const data = await fetchWithRetry(fullUrl);

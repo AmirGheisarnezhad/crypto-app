@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthContext } from "../context/AuthContext"; // 🔹 اضافه شد
+import { AuthContext } from "../context/AuthContext"; 
 import { useContext } from "react";
 
 export const API_URL = "http://localhost:5000/proxy/";
@@ -11,9 +11,8 @@ export const apiList = axios.create({
   },
 });
 
-// ✅ دریافت نرخ ارزها و ذخیره آن‌ها
-let exchangeRatesCache = null;  // کش برای ذخیره نرخ ارزها
-let lastFetchTime = 0;          // ذخیره آخرین زمان دریافت داده
+let exchangeRatesCache = null;  
+let lastFetchTime = 0;        
 
 export const fetchExchangeRates = async () => {
   const now = Date.now();
@@ -33,7 +32,7 @@ export const fetchExchangeRates = async () => {
 
     if (!response.data || !response.data.data) {
       console.error("❌ ERROR: API returned no data!");
-      return null; // 🔹 مقدار `null` برمی‌گردانیم تا مقدار نادرست اعمال نشود
+      return null; 
     }
 
     const rates = response.data.data.reduce((acc, rate) => {
@@ -51,11 +50,13 @@ export const fetchExchangeRates = async () => {
 
     console.log("✅ Successfully fetched exchange rates:", rates);
     return rates;
+
   } catch (error) {
     console.error("❌ ERROR FETCHING RATES:", error.response?.data || error.message);
-    return null; // 🔹 مقدار `null` برمی‌گردانیم تا برنامه بتواند پیام مناسب نمایش دهد
+    return null; 
   }
 };
+// --------------------------------------------------------------------------------------------
 
 // ✅ دریافت لیست ارزهای دیجیتال و تبدیل قیمت‌ها بر اساس واحد پولی انتخابی
 export const getCryptoList = async (selectedCurrency = "USD") => {
@@ -84,6 +85,7 @@ export const getCryptoList = async (selectedCurrency = "USD") => {
     return [];
   }
 };
+// --------------------------------------------------------------------------------------------
 
 // ✅ دریافت اطلاعات جزئیات یک صرافی خاص بر اساس `exchangeId`
 export const getExchangeDetails = async (exchangeId) => {
@@ -95,6 +97,7 @@ export const getExchangeDetails = async (exchangeId) => {
     return "N/A";
   }
 };
+// -------------------------------------------------------------------------------------------------------
 
 // ✅ دریافت لیست بازارهای یک صرافی خاص بر اساس `exchangeId`
 export const getExchangeMarkets = async (exchangeId, limit = 50) => {
@@ -106,10 +109,11 @@ export const getExchangeMarkets = async (exchangeId, limit = 50) => {
     return [];
   }
 };
+// ------------------------------------------------------------------------------------------------------
 
 // ✅ مدیریت تعداد درخواست‌ها به API با `Cache` و `Throttle`
-const topPairCache = {}; // ذخیره مقادیر دریافت‌شده
-const requestQueue = new Map(); // مدیریت درخواست‌های همزمان
+const topPairCache = {};
+const requestQueue = new Map(); 
 
 export const getTopPairForExchange = async (exchangeId) => {
   if (topPairCache[exchangeId]) {
@@ -174,7 +178,7 @@ export function setupAxiosInterceptors(logout) {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        console.warn("⛔ توکن منقضی شده، کاربر به صفحه لاگین هدایت می‌شود.");
+        console.warn("⛔ Token expired, user is redirected to login page.");
         logout();
         window.location.href = "/login";
       }

@@ -1,21 +1,21 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { AuthContext } from "../Context/AuthContext"; // 🔹 اضافه شد
+import { AuthContext } from "../context/AuthContext";
 import "../Styles/LoginPage.css";
 
 export default function LoginPage() {
-  const { login } = useContext(AuthContext); // 🔹 استفاده از `AuthContext`
-  const [isRegistering, setIsRegistering] = useState(false); // 🔹 اضافه شد
+  const { login } = useContext(AuthContext); 
+  const [isRegistering, setIsRegistering] = useState(false); 
   const [formData, setFormData] = useState({
-    name: "", // 🔹 مقداردهی اولیه برای جلوگیری از `undefined`
+    name: "", 
     email: "",
     password: "",
   });
-  const formDataToSend = new URLSearchParams();
-  formDataToSend.append("grant_type", "password"); // ✅ مقدار صحیح
-  formDataToSend.append("username", formData.email);
-  formDataToSend.append("password", formData.password);
+  // const formDataToSend = new URLSearchParams();
+  // formDataToSend.append("grant_type", "password"); 
+  // formDataToSend.append("username", formData.email);
+  // formDataToSend.append("password", formData.password);
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,8 +31,8 @@ export default function LoginPage() {
 
     try {
       const formDataToSend = new URLSearchParams();
-      formDataToSend.append("grant_type", "password"); // ✅ باید مقدار `password` باشد
-      formDataToSend.append("username", formData.email); // ✅ `username` همان `email` است
+      formDataToSend.append("grant_type", "password"); 
+      formDataToSend.append("username", formData.email); 
       formDataToSend.append("password", formData.password);
 
       const response = await axios.post(
@@ -42,11 +42,11 @@ export default function LoginPage() {
       );
 
       login(response.data.access_token, response.data.refresh_token);
-      setMessage("✅ ورود موفق! در حال انتقال...");
+      setMessage("✅ Successful login! Transferring...");
       setTimeout(() => navigate("/"), 1000);
     } catch (error) {
-      console.error("❌ ورود ناموفق:", error.response?.data || error.message);
-      setMessage("❌ خطای ورود: ایمیل یا رمز اشتباه است!");
+      console.error("❌ Login failed:", error.response?.data || error.message);
+      setMessage("❌ Login error: Incorrect email or password!");
     }
 
     setLoading(false);
@@ -61,25 +61,25 @@ export default function LoginPage() {
       const response = await axios.post(
         "https://moviesapi.codingfront.dev/api/v1/register",
         {
-          name: formData.name, // ✅ مقدار `name` باید ارسال شود
+          name: formData.name, 
           email: formData.email,
           password: formData.password,
         },
         {
-          headers: { "Content-Type": "application/json" }, // ✅ `Content-Type` باید `application/json` باشد
+          headers: { "Content-Type": "application/json" }, 
         }
       );
 
-      setMessage("✅ ثبت‌نام موفق! حالا وارد شوید.");
+      setMessage("✅ Registration successful! Log in now.");
       setIsRegistering(false);
     } catch (error) {
       console.error(
-        "❌ ثبت‌نام ناموفق:",
+        "❌ Registration failed:",
         error.response?.data || error.message
       );
       setMessage(
-        `❌ ثبت‌نام ناموفق: ${
-          error.response?.data?.message || "مشکلی پیش آمد!"
+        `❌ Registration failed: ${
+          error.response?.data?.message || " There's a problem!"
         }`
       );
     }
@@ -89,14 +89,14 @@ export default function LoginPage() {
 
   return (
     <div className="login-container">
-      <h2>{isRegistering ? "ثبت‌نام" : "ورود"}</h2>
+      <h2>{isRegistering ? "Register" : "login"}</h2>
 
       <form onSubmit={isRegistering ? handleRegister : handleLogin}>
         {isRegistering && (
           <input
             type="text"
             name="name"
-            placeholder="نام"
+            placeholder="name"
             value={formData.name}
             onChange={handleChange}
             required
@@ -105,7 +105,7 @@ export default function LoginPage() {
         <input
           type="email"
           name="email"
-          placeholder="ایمیل"
+          placeholder="email"
           value={formData.email}
           onChange={handleChange}
           required
@@ -113,13 +113,13 @@ export default function LoginPage() {
         <input
           type="password"
           name="password"
-          placeholder="رمز عبور"
+          placeholder=" Password"
           value={formData.password}
           onChange={handleChange}
           required
         />
         <button type="submit" disabled={loading}>
-          {loading ? "در حال پردازش..." : isRegistering ? "ثبت‌نام" : "ورود"}
+          {loading ? "Processing..." : isRegistering ? "registration" : "login"}
         </button>
       </form>
 
@@ -130,8 +130,8 @@ export default function LoginPage() {
         className="switch-form"
       >
         {isRegistering
-          ? "قبلاً ثبت‌نام کرده‌اید؟ وارد شوید"
-          : "حساب کاربری ندارید؟ ثبت‌نام کنید"}
+          ? "Already registered? Sign in"
+          : "Don't have an account? Register"}
       </p>
     </div>
   );

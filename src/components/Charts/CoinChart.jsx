@@ -12,8 +12,8 @@ import {
   Legend,
   TimeScale,
 } from "chart.js";
-import "chartjs-adapter-date-fns"; // ✅ برای پردازش تاریخ‌ها
-import { format } from "date-fns"; // ✅ برای فرمت کردن تاریخ
+import "chartjs-adapter-date-fns"; 
+import { format } from "date-fns"; 
 import "../Charts/CoinChart.css";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
@@ -29,7 +29,7 @@ export default function CoinChart({ coinId, interval }) {
       setError(null);
 
       try {
-        let apiInterval = "d1"; // مقدار پیش‌فرض
+        let apiInterval = "d1"; 
 
         if (interval === "1D") apiInterval = "m1"; 
         else if (["1W", "1M", "3M", "6M", "1Y", "All"].includes(interval)) apiInterval = "d1";
@@ -76,18 +76,18 @@ export default function CoinChart({ coinId, interval }) {
 
   // ✅ تنظیم فرمت تاریخ بر اساس تایم‌فریم انتخاب شده
   const getTimeUnit = () => {
-    if (interval === "1D") return "hour"; // ساعت‌ها
-    if (interval === "1W") return "day"; // روزها
-    if (["1M", "3M", "6M"].includes(interval)) return "week"; // هفته‌ها
-    if (["1Y", "All"].includes(interval)) return "month"; // ماه‌ها
-    return "day"; // مقدار پیش‌فرض
+    if (interval === "1D") return "hour"; 
+    if (interval === "1W") return "day"; 
+    if (["1M", "3M", "6M"].includes(interval)) return "week"; 
+    if (["1Y", "All"].includes(interval)) return "month"; 
+    return "day"; 
   };
   const getTimeFormat = () => {
-    if (interval === "1D") return "h a"; // `3PM, 4PM, 5PM`
-    if (interval === "1W") return "MMM dd"; // `Feb 22, Feb 23`
-    if (["1M", "3M", "6M"].includes(interval)) return "MMM dd yyyy"; // `Feb 05 2023`
-    if (["1Y", "All"].includes(interval)) return "MMM yyyy"; // `Mar 2023, Apr 2023`
-    return "MMM dd"; // مقدار پیش‌فرض
+    if (interval === "1D") return "h a";
+    if (interval === "1W") return "MMM dd"; 
+    if (["1M", "3M", "6M"].includes(interval)) return "MMM dd yyyy"; 
+    if (["1Y", "All"].includes(interval)) return "MMM yyyy"; 
+    return "MMM dd"; 
   };
 
   return (
@@ -118,10 +118,10 @@ export default function CoinChart({ coinId, interval }) {
                   },
                   y: {
                     grid: {
-                      display: false, /* ✅ حذف خطوط محور Y */
+                      display: false, 
                     },
                     ticks: {
-                      display: true, /* ✅ اعداد محور Y باقی بمانند */
+                      display: true, 
                     },
                   },
                 },

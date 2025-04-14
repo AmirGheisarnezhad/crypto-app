@@ -5,11 +5,11 @@ import CoinsList from "../components/CryptoList/CoinsList";
 
 
 export default function HomePage() {
-  const { selectedCurrency } = useOutletContext(); // ✅ دریافت مقدار `selectedCurrency
-  console.log("Selected currency in HomePage:", selectedCurrency); // ✅ تست مقدار
+  const { selectedCurrency } = useOutletContext(); 
+  console.log("Selected currency in HomePage:", selectedCurrency);  
   return (
     <Fragment>
-      <CoinsList selectedCurrency={selectedCurrency} />;
+      <CoinsList selectedCurrency={selectedCurrency} />
     </Fragment>
   );
 }

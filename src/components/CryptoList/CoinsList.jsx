@@ -11,6 +11,7 @@ export default function CoinsList({ selectedCurrency }) {
   const [currentPage, setCurrentPage] = useState(() => {
     return parseInt(localStorage.getItem("cryptoCurrentPage")) || 1;
   });
+  
   const pageSize = 10;
 
   const getApi = async () => {
@@ -62,20 +63,39 @@ export default function CoinsList({ selectedCurrency }) {
                 </tr>
               </thead>
               <tbody>
-  {displayedCoins.map(({ id, symbol, name, priceUsd, supply, marketCapUsd, volumeUsd24Hr, changePercent24Hr }) => (
-    <tr key={id} className="clickable-row" onClick={() => window.location.href = `/coin/${id}`}>
-      <td>{symbol}</td>
-      <td>{name}</td>
-      <td>{parseFloat(priceUsd).toLocaleString()}</td>
-      <td>{parseFloat(supply).toLocaleString()}</td>
-      <td>{parseFloat(marketCapUsd).toLocaleString()}</td>
-      <td>{parseFloat(volumeUsd24Hr).toLocaleString()}</td>
-      <td className={changePercent24Hr < 0 ? "negative" : "positive"}>
-        {parseFloat(changePercent24Hr).toFixed(2)}%
-      </td>
-    </tr>
-  ))}
-</tbody>
+                {displayedCoins.map(
+                  ({
+                    id,
+                    symbol,
+                    name,
+                    priceUsd,
+                    supply,
+                    marketCapUsd,
+                    volumeUsd24Hr,
+                    changePercent24Hr,
+                  }) => (
+                    <tr
+                      key={id}
+                      className="clickable-row"
+                      onClick={() => (window.location.href = `/coin/${id}`)}
+                    >
+                      <td>{symbol}</td>
+                      <td>{name}</td>
+                      <td>{parseFloat(priceUsd).toLocaleString()}</td>
+                      <td>{parseFloat(supply).toLocaleString()}</td>
+                      <td>{parseFloat(marketCapUsd).toLocaleString()}</td>
+                      <td>{parseFloat(volumeUsd24Hr).toLocaleString()}</td>
+                      <td
+                        className={
+                          changePercent24Hr < 0 ? "negative" : "positive"
+                        }
+                      >
+                        {parseFloat(changePercent24Hr).toFixed(2)}%
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
             </table>
           </div>
         )}

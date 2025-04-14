@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { apiList, fetchExchangeRates, getTopPairForExchange } from "../Utils/CryptoService";
+import { apiList, fetchExchangeRates } from "../Utils/CryptoService";
 import { Link, useOutletContext } from "react-router-dom";
 import { Pagination } from "antd";
 import Loader from "../components/Loader/Loader";
@@ -15,15 +15,12 @@ export default function ExchangesPage() {
   const [exchangeRates, setExchangeRates] = useState({});
   const pageSize = 10;
 
-  // ✅ کش برای ذخیره `Top Pairs` و جلوگیری از درخواست‌های اضافی
-  const topPairCache = new Map();
-
   const getExchanges = useCallback(async () => {
     try {
       console.log("🔄 Fetching exchanges data for currency:", selectedCurrency);
       setLoading(true);
 
-      // دریافت و ذخیره نرخ‌های ارز
+      // دریافت نرخ ارز
       const rates = await fetchExchangeRates();
       setExchangeRates(rates ?? { USD: 1 });
 
@@ -31,21 +28,7 @@ export default function ExchangesPage() {
       const response = await apiList.get("exchanges");
       if (response.data?.data?.length > 0) {
         const sortedExchanges = response.data.data.sort((a, b) => a.rank - b.rank);
-
-        // دریافت `Top Pair` فقط برای صرافی‌هایی که مقدار `Cache` ندارند
-        const exchangesWithTopPair = await Promise.all(
-          sortedExchanges.map(async (exchange) => {
-            if (topPairCache.has(exchange.exchangeId)) {
-              return { ...exchange, topPair: topPairCache.get(exchange.exchangeId) };
-            }
-
-            const topPair = (await getTopPairForExchange(exchange.exchangeId)) || "N/A";
-            topPairCache.set(exchange.exchangeId, topPair); // ذخیره در `Cache`
-            return { ...exchange, topPair };
-          })
-        );
-
-        setExchanges(exchangesWithTopPair);
+        setExchanges(sortedExchanges);
       } else {
         console.warn("⚠️ No exchanges data received.");
         setExchanges([]);
@@ -93,7 +76,6 @@ export default function ExchangesPage() {
                 <th>Rank</th>
                 <th>Name</th>
                 <th>Trading Pairs</th>
-                <th>Top Pair</th>
                 <th>24h Volume ({selectedCurrency})</th>
                 <th>Total Volume %</th>
                 <th>WebSocket</th>
@@ -106,7 +88,6 @@ export default function ExchangesPage() {
                   exchangeId,
                   name,
                   tradingPairs,
-                  topPair,
                   volumeUsd,
                   percentTotalVolume,
                   socket,
@@ -116,7 +97,6 @@ export default function ExchangesPage() {
                     <td>{rank ?? "N/A"}</td>
                     <td>{name?.trim() || "Unknown"}</td>
                     <td>{tradingPairs || "N/A"}</td>
-                    <td>{topPair?.trim() || "N/A"}</td>
                     <td>{volumeUsd ? `${convertCurrency(volumeUsd)} ${selectedCurrency}` : "N/A"}</td>
                     <td>{percentTotalVolume ? `${parseFloat(percentTotalVolume).toFixed(2)}%` : "N/A"}</td>
                     <td>
