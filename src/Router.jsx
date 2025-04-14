@@ -1,5 +1,5 @@
 import { lazy, useContext } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthContext } from "./Context/AuthContext";
 import ProtectedRoute from "../src/components/ProtectedRoute/ProtectedRoute"; // 🔹 اضافه شد
 import MainLayout from "./components/Layouts/MainLayout";
@@ -15,7 +15,7 @@ export default function RouterComponent() {
   const { isAuthenticated } = useContext(AuthContext);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         {/* 📌 مسیر لاگین همیشه در دسترس است */}
         <Route path="/login" element={<LoginPage />} />
@@ -34,6 +34,6 @@ export default function RouterComponent() {
         {/* 📌 مسیر پیش‌فرض برای ریدایرکت کاربران غیرمجاز */}
         <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

@@ -7,7 +7,7 @@ const COINCAP_API_KEY = "a1a2d89d2b33bc5fff6d14c940b693b3ef058b3f75f966db0e7c381
 const app = express();
 app.use(cors());
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT ; //|| 5000
 
 
 // ✅ ایجاد Delay برای جلوگیری از Too Many Requests (429)
