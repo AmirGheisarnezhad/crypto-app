@@ -1,10 +1,14 @@
 import axios from "axios";
-import { AuthContext } from "../context/AuthContext"; 
+import { AuthContext } from "../context/AuthContext";
 import { useContext } from "react";
 // const isLocalhost = window.location.hostname === "localhost";
 
 // export const API_URL = "https://crypto-app-bjvy.onrender.com";
-export const API_URL ="http://localhost:5000/proxy/";
+// export const API_URL ="http://localhost:5000/proxy/";
+const isLocalhost = window.location.hostname === "localhost";
+export const API_URL = isLocalhost
+  ? "http://localhost:5000/proxy/"
+  : "https://crypto-app-bjvy.onrender.com/proxy/";
 
 export const apiList = axios.create({
   baseURL: API_URL,
@@ -13,8 +17,8 @@ export const apiList = axios.create({
   },
 });
 
-let exchangeRatesCache = null;  
-let lastFetchTime = 0;        
+let exchangeRatesCache = null;
+let lastFetchTime = 0;
 
 export const fetchExchangeRates = async () => {
   const now = Date.now();
@@ -34,7 +38,7 @@ export const fetchExchangeRates = async () => {
 
     if (!response.data || !response.data.data) {
       console.error("❌ ERROR: API returned no data!");
-      return null; 
+      return null;
     }
 
     const rates = response.data.data.reduce((acc, rate) => {
@@ -43,7 +47,9 @@ export const fetchExchangeRates = async () => {
     }, {});
 
     if (!rates["USD"]) {
-      console.error("❌ ERROR: API did not return USD exchange rate! Using fallback.");
+      console.error(
+        "❌ ERROR: API did not return USD exchange rate! Using fallback.",
+      );
       rates["USD"] = 1;
     }
 
@@ -52,10 +58,12 @@ export const fetchExchangeRates = async () => {
 
     console.log("✅ Successfully fetched exchange rates:", rates);
     return rates;
-
   } catch (error) {
-    console.error("❌ ERROR FETCHING RATES:", error.response?.data || error.message);
-    return null; 
+    console.error(
+      "❌ ERROR FETCHING RATES:",
+      error.response?.data || error.message,
+    );
+    return null;
   }
 };
 // --------------------------------------------------------------------------------------------
@@ -67,11 +75,14 @@ export const getCryptoList = async (selectedCurrency = "USD") => {
     const exchangeRates = await fetchExchangeRates();
 
     if (!exchangeRates) {
-      console.error("❌ ERROR: Exchange rates not available. Returning empty list.");
+      console.error(
+        "❌ ERROR: Exchange rates not available. Returning empty list.",
+      );
       return [];
     }
 
-    const conversionRate = exchangeRates[selectedCurrency] || exchangeRates["USD"] || 1;
+    const conversionRate =
+      exchangeRates[selectedCurrency] || exchangeRates["USD"] || 1;
     const response = await apiList.get("assets");
 
     let coins = response.data.data;
@@ -83,7 +94,10 @@ export const getCryptoList = async (selectedCurrency = "USD") => {
     console.log(`✅ Updated coin prices for ${selectedCurrency}:`, coins);
     return coins;
   } catch (error) {
-    console.error("❌ ERROR FETCHING COINS:", error.response?.data || error.message);
+    console.error(
+      "❌ ERROR FETCHING COINS:",
+      error.response?.data || error.message,
+    );
     return [];
   }
 };
@@ -95,7 +109,10 @@ export const getExchangeDetails = async (exchangeId) => {
     const response = await apiList.get(`exchanges/${exchangeId}`);
     return response.data.data || "N/A";
   } catch (error) {
-    console.error(`❌ ERROR FETCHING EXCHANGE DETAILS (${exchangeId}):`, error.response?.data || error.message);
+    console.error(
+      `❌ ERROR FETCHING EXCHANGE DETAILS (${exchangeId}):`,
+      error.response?.data || error.message,
+    );
     return "N/A";
   }
 };
@@ -104,10 +121,15 @@ export const getExchangeDetails = async (exchangeId) => {
 // ✅ دریافت لیست بازارهای یک صرافی خاص بر اساس `exchangeId`
 export const getExchangeMarkets = async (exchangeId, limit = 50) => {
   try {
-    const response = await apiList.get(`markets?exchangeId=${exchangeId}&limit=${limit}`);
+    const response = await apiList.get(
+      `markets?exchangeId=${exchangeId}&limit=${limit}`,
+    );
     return response.data.data || [];
   } catch (error) {
-    console.error(`❌ ERROR FETCHING EXCHANGE MARKETS (${exchangeId}):`, error.response?.data || error.message);
+    console.error(
+      `❌ ERROR FETCHING EXCHANGE MARKETS (${exchangeId}):`,
+      error.response?.data || error.message,
+    );
     return [];
   }
 };
@@ -115,7 +137,7 @@ export const getExchangeMarkets = async (exchangeId, limit = 50) => {
 
 // ✅ مدیریت تعداد درخواست‌ها به API با `Cache` و `Throttle`
 const topPairCache = {};
-const requestQueue = new Map(); 
+const requestQueue = new Map();
 
 export const getTopPairForExchange = async (exchangeId) => {
   if (topPairCache[exchangeId]) {
@@ -137,14 +159,19 @@ export const getTopPairForExchange = async (exchangeId) => {
           resolve("N/A");
         } else {
           const topMarket = markets.reduce((prev, current) =>
-            parseFloat(current.volumeUsd24Hr) > parseFloat(prev.volumeUsd24Hr) ? current : prev
+            parseFloat(current.volumeUsd24Hr) > parseFloat(prev.volumeUsd24Hr)
+              ? current
+              : prev,
           );
           const topPair = `${topMarket?.baseSymbol ?? "Unknown"}/${topMarket?.quoteSymbol ?? "Unknown"}`;
           topPairCache[exchangeId] = topPair;
           resolve(topPair);
         }
       } catch (error) {
-        console.error(`❌ ERROR FETCHING TOP PAIR (${exchangeId}):`, error.response?.data || error.message);
+        console.error(
+          `❌ ERROR FETCHING TOP PAIR (${exchangeId}):`,
+          error.response?.data || error.message,
+        );
         resolve("N/A");
       } finally {
         requestQueue.delete(exchangeId);
@@ -156,19 +183,23 @@ export const getTopPairForExchange = async (exchangeId) => {
   return fetchPromise;
 };
 
-
 // =========================================================
 // ✅ دریافت تاریخچه‌ی قیمت یک کوین برای چارت
 export const getCoinHistory = async (coinId, interval = "d1") => {
   try {
-    const response = await apiList.get(`assets/${coinId}/history?interval=${interval}`);
+    const response = await apiList.get(
+      `assets/${coinId}/history?interval=${interval}`,
+    );
     if (!response.data?.data || response.data.data.length === 0) {
       console.warn(`⚠️ No history data for ${coinId} - ${interval}`);
       return [];
     }
     return response.data.data;
   } catch (error) {
-    console.error(`❌ ERROR FETCHING HISTORY FOR ${coinId}:`, error.response?.data || error.message);
+    console.error(
+      `❌ ERROR FETCHING HISTORY FOR ${coinId}:`,
+      error.response?.data || error.message,
+    );
     return [];
   }
 };
@@ -185,17 +216,16 @@ export function setupAxiosInterceptors(logout) {
         window.location.href = "/login";
       }
       return Promise.reject(error);
-    }
+    },
   );
 }
-
 
 // ✅ مدیریت درخواست‌های `Too Many Requests (429)`
 apiList.interceptors.response.use(null, async (error) => {
   if (error.response?.status === 429) {
     console.warn("⚠️ Too Many Requests. Retrying after delay...");
-    await new Promise((resolve) => setTimeout(resolve, 1000)); 
-    return apiList(error.config); 
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return apiList(error.config);
   }
   return Promise.reject(error);
 });
@@ -207,11 +237,9 @@ export const refreshToken = async (oldRefreshToken) => {
     formData.append("grant_type", "refresh_token");
     formData.append("refresh_token", oldRefreshToken);
 
-    const response = await apiList.post(
-      "oauth/token",
-      formData,
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-    );
+    const response = await apiList.post("oauth/token", formData, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    });
 
     return response.data;
   } catch (error) {
