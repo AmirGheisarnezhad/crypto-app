@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../Context/AuthContext";
 import { useContext } from "react";
 // const isLocalhost = window.location.hostname === "localhost";
 
