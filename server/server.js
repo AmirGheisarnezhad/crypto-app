@@ -5,7 +5,7 @@ const axios = require("axios");
 
 // ❗ توکن رو نگه داشتی داخل سورس. بهتره بعداً بذاریم تو ENV روی Render
 const COINCAP_API_KEY =
-  "a1a2d89d2b33bc5fff6d14c940b693b3ef058b3f75f966db0e7c381ae5b83dbd";
+  "1ccd9dc85fcaa1e90fd17519cd1310df11ef28a63cc655e00c55abda0475ed32";
 
 const app = express();
 
